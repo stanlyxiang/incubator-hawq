@@ -224,7 +224,7 @@
  * automatically if --enable-cassert.
  */
 #ifdef USE_ASSERT_CHECKING
-#define MEMORY_CONTEXT_CHECKING
+//#define MEMORY_CONTEXT_CHECKING
 #endif
 
 /*

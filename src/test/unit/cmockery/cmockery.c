@@ -577,7 +577,10 @@ static int get_symbol_value(
 	assert_true(number_of_symbol_names);
 	assert_true(output);
 	symbol_name = symbol_names[0];
-
+	ListNode *current;
+	for (current = head->next; current != head; current = current->next) {
+		print_message(COLOR_DEFAULT, "current value is %s.\n", current->value);
+	}
 	if (list_find(head, symbol_name, symbol_names_match, &target_node)) {
 		SymbolMapValue *map_value;
 		ListNode *child_list;
@@ -788,6 +791,7 @@ void _expect_check(
 	set_source_location(&check->location, file, line);
 	add_symbol_value(&global_function_parameter_map_head, symbols, 2, check,
 			count);
+	print_message(COLOR_DEFAULT, "the value is %s, %s",symbols[0],symbols[1]);
 }
 
 
@@ -1351,6 +1355,7 @@ void _check_expected(
 	const char* symbols[] = {function_name, parameter_name};
 	const int rc = get_symbol_value(&global_function_parameter_map_head,
 			symbols, 2, 1, &result);
+	print_message(COLOR_DEFAULT, "the value is %s, %s, %d \n",function_name,parameter_name,rc);
 	if (rc) {
 		CheckParameterEvent * const check = (CheckParameterEvent*)result;
 		int check_succeeded;
