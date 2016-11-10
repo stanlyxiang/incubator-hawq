@@ -182,8 +182,8 @@ test__rest_request__callRestThrowsHASecondTime(void **state)
 	}
 	PG_CATCH();
 	{
-		pfree(hadoop_uri->host);
-		pfree(hadoop_uri->port);
+		//pfree(hadoop_uri->host);
+		//pfree(hadoop_uri->port);
 		pfree(hadoop_uri);
 		pfree(client_context);
 

@@ -423,7 +423,7 @@ test__GPHDUri_verify_core_options_exist__NegativeTestMissingCoreOpts(void **stat
 		assert_true(edata->sqlerrcode == ERRCODE_SYNTAX_ERROR);
 		assert_true(edata->elevel == ERROR);
 		assert_string_equal(edata->message, "Invalid URI pxf://1.2.3.4:5678/some/path/and/table.tbl?FRAGMENTER=a: PROFILE or ACCESSOR and RESOLVER option(s) missing");
-		list_free(coreOptions);
+		//list_free(coreOptions);
 		return;
 	}
 	PG_END_TRY();
