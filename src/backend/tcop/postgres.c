@@ -3303,6 +3303,7 @@ IsTransactionStmtList(List *nodes)
 void
 quickdie(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGQUIT");
 	quickdie_impl();
 }
 
@@ -3353,6 +3354,8 @@ quickdie_impl()
 void
 die(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGTERM");
+
 	int			save_errno = errno;
 
 	/* Don't joggle the elbow of proc_exit */
@@ -3425,6 +3428,7 @@ authdie(SIGNAL_ARGS)
 void
 StatementCancelHandler(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGINT");
 	int			save_errno = errno;
 
 	/*
@@ -3528,6 +3532,7 @@ FloatExceptionHandler(SIGNAL_ARGS)
 static void
 SigHupHandler(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGHUP");
 	got_SIGHUP = true;
 }
 

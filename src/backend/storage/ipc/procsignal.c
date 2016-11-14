@@ -250,6 +250,7 @@ CheckProcSignal(ProcSignalReason reason)
 void
 procsignal_sigusr1_handler(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGUSER1");
 	int			save_errno = errno;
 
 	if (CheckProcSignal(PROCSIG_CATCHUP_INTERRUPT))

@@ -789,6 +789,7 @@ AtSubAbort_Notify(void)
 void
 NotifyInterruptHandler(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGUSER2");
 	int			save_errno = errno;
 
 	/*

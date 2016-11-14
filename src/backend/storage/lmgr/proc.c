@@ -1482,6 +1482,7 @@ extern bool DoingCommandRead;
 void
 handle_sig_alarm(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGALARM");
 	int			save_errno = errno;
 
 	/*
