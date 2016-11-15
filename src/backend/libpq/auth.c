@@ -1226,7 +1226,7 @@ pg_GSS_recvauth(Port *port)
 		gbuf.length = buf.len;
 		gbuf.value = buf.data;
 
-		elog(DEBUG4, "Processing received GSS token of length %u",
+		elog(LOG, "[TEST] Processing received GSS token of length %u",
 			 (unsigned int) gbuf.length);
 
 		maj_stat = gss_accept_sec_context(
@@ -1245,7 +1245,7 @@ pg_GSS_recvauth(Port *port)
 		/* gbuf no longer used */
 		pfree(buf.data);
 
-		elog(DEBUG5, "gss_accept_sec_context major: %d, "
+		elog(LOG, "[TEST] gss_accept_sec_context major: %d, "
 			 "minor: %d, outlen: %u, outflags: %x",
 			 maj_stat, min_stat,
 			 (unsigned int) port->gss->outbuf.length, gflags);
