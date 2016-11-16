@@ -3418,6 +3418,7 @@ die(SIGNAL_ARGS)
 void
 authdie(SIGNAL_ARGS)
 {
+    elog(LOG, "SIGNAL AUTHDIE");
 	exit(1);
 }
 
