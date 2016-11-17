@@ -14,7 +14,7 @@
  */
 
 #include "postgres.h"
-
+#include "libpq/md5.h"
 #include <sys/param.h>
 #include <sys/socket.h>
 #if defined(HAVE_STRUCT_CMSGCRED) || defined(HAVE_STRUCT_FCRED) || defined(HAVE_STRUCT_SOCKCRED)
@@ -1228,6 +1228,18 @@ pg_GSS_recvauth(Port *port)
 
 		elog(LOG, "[TEST] Processing received GSS token of length %u",
 			 (unsigned int) gbuf.length);
+
+        char gbuf_content[128];
+        pg_md5_hash(gbuf.value, gbuf.length, gbuf_content); 
+        elog(LOG, "[TEST]\nmin_stat:%d\ngss_ctx_id:%d\ngss_cred_id:%d\ngbuf_len:%d\ngbuf_content:%s\ngss_name:%s\ngss_outbuf_len:%d\ngflags:%d\n",
+            min_stat,
+            port->gss->ctx,
+            port->gss->cred,
+            gbuf.length,
+            gbuf_content,
+            port->gss->name,
+            port->gss->outbuf.length,
+            gflags);
 
 		maj_stat = gss_accept_sec_context(
 										  &min_stat,
