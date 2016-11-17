@@ -1231,6 +1231,9 @@ pg_GSS_recvauth(Port *port)
 
         char gbuf_content[128];
         pg_md5_hash(gbuf.value, gbuf.length, gbuf_content); 
+        char gbuf_string[1024];
+        memset(gbuf_string, 0, 1024);
+        memcpy(gbuf_string, gbuf.value, gbuf.length);
         elog(LOG, "[TEST]\nmin_stat:%d\ngss_ctx_id:%d\ngss_cred_id:%d\ngbuf_len:%d\ngbuf_content:%s\ngss_name:%s\ngss_outbuf_len:%d\ngflags:%d\n",
             min_stat,
             port->gss->ctx,
@@ -1240,6 +1243,7 @@ pg_GSS_recvauth(Port *port)
             port->gss->name,
             port->gss->outbuf.length,
             gflags);
+        elog(LOG, "[TEST] Token:%s\n", gbuf_string);
 
 		maj_stat = gss_accept_sec_context(
 										  &min_stat,
