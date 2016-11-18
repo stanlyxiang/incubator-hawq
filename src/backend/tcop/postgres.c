@@ -3418,7 +3418,7 @@ die(SIGNAL_ARGS)
 void
 authdie(SIGNAL_ARGS)
 {
-    elog(LOG, "SIGNAL AUTHDIE");
+    elog(LOG, "SIGNAL AUTHDIE, signal:%d", postgres_signal_arg);
 	exit(1);
 }
 
