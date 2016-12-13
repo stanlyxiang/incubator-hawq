@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #include "lib/command.h"
 #include "lib/sql_util.h"
@@ -326,6 +327,8 @@ TEST_F(TestHawqRegister, DISABLED_TestUsage2Case1ErrorRowgroupSize) {
 TEST_F(TestHawqRegister, TestUsage2Case1IncludeDirectory) {
     SQLUtility util;
     string test_root(util.getTestRootPath());
+    std::cout << Command::getCommandOutput(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1 %s/", test_root.c_str(), getHdfsLocation().c_str())) << std::endl;
+
     EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1 %s/", test_root.c_str(), getHdfsLocation().c_str())));
     string t_yml(hawq::test::stringFormat("%s/ManagementTool/usage2case1/includedirectory.yml", test_root.c_str()));
     string t_yml_tpl(hawq::test::stringFormat("%s/ManagementTool/usage2case1/includedirectory_tpl.yml", test_root.c_str()));
