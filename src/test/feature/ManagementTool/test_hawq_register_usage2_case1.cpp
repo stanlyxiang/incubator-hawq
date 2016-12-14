@@ -327,11 +327,11 @@ TEST_F(TestHawqRegister, DISABLED_TestUsage2Case1ErrorRowgroupSize) {
 TEST_F(TestHawqRegister, TestUsage2Case1IncludeDirectory) {
     SQLUtility util;
     string test_root(util.getTestRootPath());
-    std::cout << Command::getCommandOutput(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1 %s/", test_root.c_str(), getHdfsLocation().c_str())) << std::endl;
+    std::cout << Command::getCommandOutput(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1_bak %s/", test_root.c_str(), getHdfsLocation().c_str())) << std::endl;
 
-    EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1 %s/", test_root.c_str(), getHdfsLocation().c_str())));
-    string t_yml(hawq::test::stringFormat("%s/ManagementTool/usage2case1/includedirectory.yml", test_root.c_str()));
-    string t_yml_tpl(hawq::test::stringFormat("%s/ManagementTool/usage2case1/includedirectory_tpl.yml", test_root.c_str()));
+    EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("hadoop fs -put -f %s/ManagementTool/usage2case1_bak %s/", test_root.c_str(), getHdfsLocation().c_str())));
+    string t_yml(hawq::test::stringFormat("%s/ManagementTool/usage2case1_bak/includedirectory.yml", test_root.c_str()));
+    string t_yml_tpl(hawq::test::stringFormat("%s/ManagementTool/usage2case1_bak/includedirectory_tpl.yml", test_root.c_str()));
     hawq::test::FileReplace frep;
     std::unordered_map<std::string, std::string> strs_src_dst;
     hawq::test::HdfsConfig hc;
@@ -341,7 +341,7 @@ TEST_F(TestHawqRegister, TestUsage2Case1IncludeDirectory) {
     frep.replace(t_yml_tpl, t_yml, strs_src_dst);
     EXPECT_EQ(1, Command::getCommandStatus(hawq::test::stringFormat("hawq register -d %s -c %s testhawqregister_testusage2case1includedirectory.nt", HAWQ_DB, t_yml.c_str())));
     EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("rm -rf %s", t_yml.c_str())));
-    EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("hdfs dfs -rm -r %s/usage2case1", getHdfsLocation().c_str())));
+    EXPECT_EQ(0, Command::getCommandStatus(hawq::test::stringFormat("hdfs dfs -rm -r %s/usage2case1_bak", getHdfsLocation().c_str())));
 }
 
 TEST_F(TestHawqRegister, TestUsage2Case1ErrorFormat) {
