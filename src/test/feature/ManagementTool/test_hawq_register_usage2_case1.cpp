@@ -374,27 +374,29 @@ TEST_F(TestHawqRegister, TestUsage2Case1FileUnderTableDirectory) {
 // HAWQ-1221. BFV
 TEST_F(TestHawqRegister, TestUsage2Case1YamlNotExist) {
 	SQLUtility util;
+	util.execute("drop table if exists t_notexist;");
+	util.execute("create table t_notexist (i int);");
 	string test_root(util.getTestRootPath());
 	string t_yml(hawq::test::stringFormat("%s/ManagementTool/usage2case1/yaml_not_exist.yml", test_root.c_str()));
 	string error_msg(hawq::test::stringFormat("-[ERROR]:-Cannot find yaml file : %s", t_yml.c_str()));
 	EXPECT_TRUE(testing::IsSubstring("", "", error_msg.c_str(),
-	            		   Command::getCommandOutput(hawq::test::stringFormat("hawq register -d %s -c %s testhawqregister_testusage2case1yamlnotexist.t", HAWQ_DB, t_yml.c_str()))));
+	            		   Command::getCommandOutput(hawq::test::stringFormat("hawq register -d %s -c %s testhawqregister_testusage2case1yamlnotexist.t_notexist", HAWQ_DB, t_yml.c_str()))));
+	util.execute("drop table t_notexist;");
 }
 
 // HAWQ-1223. BFV
 TEST_F(TestHawqRegister, TestUsage2Case1NonDefaultBucketnum) {
 	SQLUtility util;
-	EXPECT_EQ(0, Command::getCommandStatus("hawq config -c default_hash_table_bucket_number -v 42"));
-	EXPECT_EQ(0, Command::getCommandStatus("hawq stop cluster -u -a"));
 	util.execute("drop table if exists tbl_random;");
-	util.execute("create table tbl_random (i int);");
-	util.query("show default_hash_table_bucket_number;","42|\n");
+	util.execute("drop table if exists tbl_random_new;");
+	util.execute("set default_hash_table_bucket_number=42; create table tbl_random (i int);");
+	util.execute("insert into tbl_random select generate_series(1, 100);");
+	util.query("select * from tbl_random;", 100);
+	util.execute("set default_hash_table_bucket_number=42; create table tbl_random_new (i int);");
 	EXPECT_EQ(0, Command::getCommandStatus("hawq extract -d " + (string) HAWQ_DB + " -o tbl_random.yml testhawqregister_testusage2case1nondefaultbucketnum.tbl_random"));
-	EXPECT_EQ(0, Command::getCommandStatus("hawq register -d " + (string) HAWQ_DB + " -c tbl_random.yml testhawqregister_testusage2case1nondefaultbucketnum.ntbl_random"));
+	EXPECT_EQ(0, Command::getCommandStatus("hawq register -d " + (string) HAWQ_DB + " -c tbl_random.yml testhawqregister_testusage2case1nondefaultbucketnum.tbl_random_new"));
 
-	EXPECT_EQ(0, Command::getCommandStatus("hawq config -c default_hash_table_bucket_number -v 6"));
-	EXPECT_EQ(0, Command::getCommandStatus("hawq stop cluster -u -a"));
 	EXPECT_EQ(0, Command::getCommandStatus("rm -f tbl_random.yml"));
 	util.execute("drop table tbl_random;");
-	util.execute("drop table ntbl_random;");
+	util.execute("drop table tbl_random_new;");
 }
