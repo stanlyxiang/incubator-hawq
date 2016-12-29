@@ -49,34 +49,29 @@ char* AclObjectKindStr[] =
 	"none"               /* MUST BE LAST */
 };
 
-int request_id = 1;
+static int request_id = 1;
 
 char* getClientIP()
 {
 	Port *port = MyProcPort;
 	if(port == NULL)
 		return "";
-	char		remote_host[1025];
-	char		remote_port[32];
-	char		remote_ps_data[NI_MAXHOST];
+	char remote_host[1025];
+	char remote_port[32];
 	remote_host[0] = '\0';
 	remote_port[0] = '\0';
 
-	if (pg_getnameinfo_all(&port->raddr.addr, port->raddr.salen, remote_host,
-			sizeof(remote_host), remote_port, sizeof(remote_port),
-			(NI_NUMERICHOST | NI_NUMERICSERV))) {
-		int ret = pg_getnameinfo_all(&port->raddr.addr, port->raddr.salen,
-				remote_host, sizeof(remote_host), remote_port,
-				sizeof(remote_port), NI_NUMERICHOST | NI_NUMERICSERV);
+	int ret = pg_getnameinfo_all(&port->raddr.addr, port->raddr.salen,
+					remote_host, sizeof(remote_host),
+					remote_port,	 sizeof(remote_port),
+					NI_NUMERICHOST | NI_NUMERICSERV);
 
-		if (ret)
-			elog(WARNING,"pg_getnameinfo_all() failed: %s", gai_strerror(ret));
+	if (ret){
+		elog(WARNING,"cannot get clientIP. pg_getnameinfo_all() failed: %s", gai_strerror(ret));
+		return "";
 	}
-	snprintf(remote_ps_data, sizeof(remote_ps_data),
-				 remote_port[0] == '\0' ? "%s" : "%s(%s)",
-				 remote_host, remote_port);
-	elog(LOG,"%s",remote_ps_data);
-	return remote_ps_data;
+	elog(DEBUG3, "get clientIP when building json request : %s", remote_host);
+	return remote_host;
 }
 RangerACLResult parse_ranger_response(char* buffer)
 {
@@ -164,7 +159,6 @@ json_object *create_ranger_request_json(List *args)
 	foreach(arg, args)
 	{
 		RangerRequestJsonArgs *arg_ptr = (RangerRequestJsonArgs *) lfirst(arg);
-		elog(LOG,"HERE1");
 		if (user == NULL)
 		{
 			user = arg_ptr->user;
@@ -172,16 +166,13 @@ json_object *create_ranger_request_json(List *args)
 		}
 		AclObjectKind kind = arg_ptr->kind;
 		char* object = arg_ptr->object;
-		elog(LOG,"HERE2");
-		//Assert(user != NULL && object != NULL && privilege != NULL && arg_ptr->isAll);
-		Assert(user != NULL && object != NULL && arg_ptr->isAll);
+		Assert(user != NULL && object != NULL && privilege != NULL && arg_ptr->isAll);
 		elog(LOG, "build json for ranger request, user:%s, kind:%s, object:%s",
 				user, AclObjectKindStr[kind], object);
 
 		json_object *jelement = json_object_new_object();
 		json_object *jresource = json_object_new_object();
 		json_object *jactions = json_object_new_array();
-		elog(LOG,"HERE3");
 		switch(kind)
 		{
 			case ACL_KIND_CLASS:
@@ -258,30 +249,26 @@ json_object *create_ranger_request_json(List *args)
 				elog(ERROR, "unrecognized objkind: %d", (int) kind);
 		} // switch
 		json_object_object_add(jelement, "resource", jresource);
-		elog(LOG,"HERE4");
 		ListCell *cell;
 		foreach(cell, arg_ptr->actions)
 		{
 			json_object *jaction = json_object_new_string((char *) cell->data.ptr_value);
 			json_object_array_add(jactions, jaction);
 		}
-		elog(LOG,"HERE5");
 		json_object_object_add(jelement, "privileges", jactions);
 		json_object_array_add(jaccess, jelement);
 
 	} // foreach
-	elog(LOG,"HERE6");
-	json_object *jreqid = json_object_new_string("123");
+	char str[32];
+	sprintf(str,"%d",request_id);
+	json_object *jreqid = json_object_new_string(str);
 	json_object_object_add(jrequest, "requestId", jreqid);
 	json_object_object_add(jrequest, "user", juser);
-	elog(LOG,"HERE7");
-	/* get client ip*/
+
 	json_object *jclientip = json_object_new_string(getClientIP());
 	json_object_object_add(jrequest, "clientIp", jclientip);
-	elog(LOG,"HERE8");
-	/* get sql statement */
 
-	json_object *jcontext = json_object_new_string("SELECT * FROM DDDDDDD");
+	json_object *jcontext = json_object_new_string(debug_query_string);
 	json_object_object_add(jrequest, "context", jcontext);
 	json_object_object_add(jrequest, "access", jaccess);
 
@@ -343,7 +330,6 @@ int call_ranger_rest(CURL_HANDLE curl_handle, const char* request)
 	curl_easy_setopt(curl_handle->curl_handle, CURLOPT_TIMEOUT, 30L);
 
 	/* specify URL to get */
-	//curl_easy_setopt(curl_handle->curl_handle, CURLOPT_URL, "http://localhost:8089/checkprivilege");
 	StringInfoData tname;
 	initStringInfo(&tname);
 	appendStringInfo(&tname, "http://");
@@ -353,21 +339,10 @@ int call_ranger_rest(CURL_HANDLE curl_handle, const char* request)
 	appendStringInfo(&tname, "/rps");
 	curl_easy_setopt(curl_handle->curl_handle, CURLOPT_URL, tname.data);
 
-	/* specify format */
-	// struct curl_slist *plist = curl_slist_append(NULL, "Content-Type:application/json;charset=UTF-8");
-	// curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, plist);
-
-
-	//curl_easy_setopt(curl_handle->curl_handle, CURLOPT_POSTFIELDSIZE_LARGE, 1000);
-	//curl_easy_setopt(curl_handle->curl_handle, CURLOPT_HTTPGET, 0);
-	//curl_easy_setopt(curl_handle->curl_handle, CURLOPT_CUSTOMREQUEST, "POST");
-
 	struct curl_slist *headers = NULL;
-	//curl_slist_append(headers, "Accept: application/json");
 	headers = curl_slist_append(headers, "Content-Type:application/json");
 	curl_easy_setopt(curl_handle->curl_handle, CURLOPT_HTTPHEADER, headers);
 
-	//curl_easy_setopt(curl_handle->curl_handle, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl_handle->curl_handle, CURLOPT_POSTFIELDS,request);
 	//"{\"requestId\": 1,\"user\": \"hubert\",\"clientIp\":\"123.0.0.21\",\"context\": \"SELECT * FROM sales\",\"access\":[{\"resource\":{\"database\":\"a-database\",\"schema\":\"a-schema\",\"table\":\"sales\"},\"privileges\": [\"select\"]}]}");
 	/* send all data to this function  */
