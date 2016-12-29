@@ -93,6 +93,6 @@ RangerACLResult parse_ranger_response(char *);
 json_object *create_ranger_request_json(List *);
 int call_ranger_rest(CURL_HANDLE curl_handle, const char *request);
 extern int check_privilege_from_ranger(List *);
-char* getClientIP(void);
+void getClientIP(char *remote_host);
 
 #endif

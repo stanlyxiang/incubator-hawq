@@ -51,27 +51,20 @@ char* AclObjectKindStr[] =
 
 static int request_id = 1;
 
-char* getClientIP()
+void getClientIP(char *remote_host)
 {
 	Port *port = MyProcPort;
-	if(port == NULL)
-		return "";
-	char remote_host[1025];
 	char remote_port[32];
-	remote_host[0] = '\0';
 	remote_port[0] = '\0';
 
 	int ret = pg_getnameinfo_all(&port->raddr.addr, port->raddr.salen,
 					remote_host, sizeof(remote_host),
 					remote_port,	 sizeof(remote_port),
 					NI_NUMERICHOST | NI_NUMERICSERV);
-
 	if (ret){
-		elog(WARNING,"cannot get clientIP. pg_getnameinfo_all() failed: %s", gai_strerror(ret));
-		return "";
+		elog(LOG,"cannot get clientIP. pg_getnameinfo_all() failed: %s", gai_strerror(ret));
 	}
 	elog(DEBUG3, "get clientIP when building json request : %s", remote_host);
-	return remote_host;
 }
 RangerACLResult parse_ranger_response(char* buffer)
 {
@@ -265,7 +258,9 @@ json_object *create_ranger_request_json(List *args)
 	json_object_object_add(jrequest, "requestId", jreqid);
 	json_object_object_add(jrequest, "user", juser);
 
-	json_object *jclientip = json_object_new_string(getClientIP());
+	char remote_host[1025];
+	getClientIP(remote_host);
+	json_object *jclientip = json_object_new_string(remote_host);
 	json_object_object_add(jrequest, "clientIp", jclientip);
 
 	json_object *jcontext = json_object_new_string(debug_query_string);
