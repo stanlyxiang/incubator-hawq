@@ -451,7 +451,7 @@ int check_privilege_from_ranger(List *request_list, List *result_list)
 
 	const char *request = json_object_to_json_string(jrequest);
 	Assert(request != NULL);
-	elog(DEBUG3, "send json request to ranger : %s", request);
+	elog(LOG, "send json request to ranger : %s", request);
 
 	/* call GET method to send request*/
 	Assert(curl_context_ranger.hasInited);
