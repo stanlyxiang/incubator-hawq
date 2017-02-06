@@ -1060,6 +1060,8 @@ exec_mpp_query(const char *query_string,
 
 	pgstat_report_activity(query_string);
 
+	elog(LOG, "Current Query is:%s", query_string);
+
 	/*
 	 * We use save_log_statement_stats so ShowUsage doesn't report incorrect
 	 * results because ResetUsage wasn't called.
@@ -1591,6 +1593,8 @@ exec_simple_query(const char *query_string, const char *seqServerHost, int seqSe
 	debug_query_string = query_string;
 
 	pgstat_report_activity(query_string);
+
+	elog(LOG, "Current Query is:%s", query_string);
 
 	/*
 	 * We use save_log_statement_stats so ShowUsage doesn't report incorrect
